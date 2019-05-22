@@ -70,7 +70,7 @@ public class CategoriaResource {
 	
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<?>  BuscarPeloId(@PathVariable Integer id) {
+	public ResponseEntity<?>  buscarPeloId(@PathVariable Integer id) {
 		Categoria categoria = this.repository.findById(id).orElse(null);
 		if(categoria==null || categoria.getId()==null)
 			return ResponseEntity.notFound().build();

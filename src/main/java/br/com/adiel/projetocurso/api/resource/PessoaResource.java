@@ -5,10 +5,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,22 +21,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.adiel.projetocurso.api.event.RecursoCriadoEvent;
 import br.com.adiel.projetocurso.api.model.Pessoa;
-import br.com.adiel.projetocurso.api.repository.PessoaRepository;
+import br.com.adiel.projetocurso.api.service.PessoaService;
 
 @RestController
 @RequestMapping("/pessoas")
 public class PessoaResource {
 
 	@Autowired
-	private PessoaRepository repository;
+	private PessoaService service;
 	
 	@Autowired
 	private ApplicationEventPublisher publisher;
 	
 	@GetMapping
 	public List<Pessoa> listar(){
-		
-		List<Pessoa> lista = repository.findAll();
+		List<Pessoa> lista = service.listar();
 		return lista;
 	}
 	
@@ -47,15 +44,15 @@ public class PessoaResource {
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<Pessoa> criar(@Valid @RequestBody Pessoa pessoa, HttpServletResponse response) {
 		
-		Pessoa pessoaSalva =  this.repository.save(pessoa);
+		Pessoa pessoaSalva =  this.service.criar(pessoa);
 		publisher.publishEvent(new RecursoCriadoEvent(this, response, pessoaSalva.getId()));
 		return  ResponseEntity.status(HttpStatus.CREATED).body(pessoaSalva);
 	}
 	
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<?>  BuscarPeloId(@PathVariable Integer id) {
-		Pessoa pessoa = this.repository.findById(id).orElse(null);
+	public ResponseEntity<?>  buscarPeloId(@PathVariable Integer id) {
+		Pessoa pessoa = this.service.buscarPeloId(id);
 		if(pessoa==null || pessoa.getId()==null)
 			return ResponseEntity.notFound().build();
 		return ResponseEntity.ok(pessoa);
@@ -64,22 +61,18 @@ public class PessoaResource {
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void remover(@PathVariable Integer id) {
-		this.repository.deleteById(id);
+		this.service.remover(id);
 	}
 	
 	@PutMapping("/{id}")
-	public ResponseEntity<Pessoa> atualizar(@PathVariable Integer id, @Valid @RequestBody Pessoa pessoa) {
-		
-		Pessoa pessoaSalva = this.repository.findById(id).orElse(null);
-		if(pessoaSalva==null || pessoaSalva.getId()==null) {
-			throw new EmptyResultDataAccessException(1);
-		}
-		
-			
-		
-		BeanUtils.copyProperties(pessoa, pessoaSalva,"id");
-		this.repository.save(pessoaSalva);
-		
+	public ResponseEntity<Pessoa> atualizar(@PathVariable Integer id,@Valid  @RequestBody Pessoa pessoa) {
+		Pessoa pessoaSalva = this.service.atualizar(id, pessoa);
+		return  ResponseEntity.ok(pessoaSalva);
+	}
+	@PutMapping("/{id}/ativo")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public ResponseEntity<Pessoa> atualizar(@PathVariable Integer id,@RequestBody Boolean ativo) {
+		Pessoa pessoaSalva = this.service.atualizarPropriedadeAtivo(id, ativo);
 		return  ResponseEntity.ok(pessoaSalva);
 	}
 }
