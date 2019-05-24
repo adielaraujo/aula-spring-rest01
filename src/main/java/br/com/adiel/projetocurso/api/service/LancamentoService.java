@@ -1,10 +1,10 @@
 package br.com.adiel.projetocurso.api.service;
 
-import java.util.List;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.com.adiel.projetocurso.api.exception.PessoaInexistenteOuInativaException;
@@ -23,8 +23,8 @@ public class LancamentoService {
 	@Autowired
 	PessoaService pessoaService; 
 
-	public List<Lancamento> pesquisar(LancamentoFilter lancamentoFilter) {
-		List<Lancamento> lista = repository.filtar(lancamentoFilter);
+	public Page<Lancamento> pesquisar(LancamentoFilter lancamentoFilter, Pageable pageable) {
+		Page<Lancamento> lista = repository.filtar(lancamentoFilter, pageable);
 		return lista;
 	}
 
